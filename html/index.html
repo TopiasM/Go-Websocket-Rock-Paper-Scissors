@@ -1,99 +1,101 @@
 <html>
-	<script>
-		{{if .Room}}
+  <script>
+    {{if .Room}}
 
-		var ws;
-		var addr = "localhost:8080";
+    var ws;
+    var addr = "localhost:8080";
 
-		window.onload = function() {
-			if (window.WebSocket === undefined) {
-				alert("Browser doesn't support websocket");
-				return;
-			}else {
-				ws = new WebSocket(addr + "/game/{{.}}");
+    window.onload = function() {
+      if (window.WebSocket === undefined) {
+        alert("Browser doesn't support websocket");
+        return;
+      } else {
+        ws = new WebSocket(addr + "/game/{{.}}");
 
-				var gameLog = document.getElementById("game-log");
-				var player = 0;
+        var gameLog = document.getElementById("game-log");
+        var player = 0;
 
-				ws.onopen = function (event) {
-					var msg = JSON.stringify({command:0, data:"connect"});
-					ws.send(msg);
-				}
-				ws.onmessage = function(event) {
-					let data = JSON.parse(event.data);
-					if(data.Type === "Player") {
-						document.getElementsByClassName('game-title')[0].append(" As Player" + data.Value);
-					} else if(data.Type === "RoundResult") {
-						if(data.Value !== "0") {
-							gameLog.append("Round won by Player" + data.Value + "!");
-						} else {
-							gameLog.append("Draw!");
-						}
-					} else if(data.Type === "FinalResult") {
-						gameLog.append("Game won by Player" + data.Value + "!!!");
-						document.getElementById("back-btn").style.display = "block";
-					} else if(data.Type.includes("Message")) {
-						gameLog.append(data.Type + ": " + data.Value);
-					}
+        ws.onopen = function (event) {
+          var msg = JSON.stringify({command:0, data:"connect"});
+          ws.send(msg);
+        }
 
-					gameLog.appendChild(document.createElement("br"));
-				}
-				ws.onclose = function() {
-					gameLog.append("Room closed");
-				}
-			}
-		}
+        ws.onmessage = function(event) {
+          let data = JSON.parse(event.data);
+          if(data.Type === "Player") {
+            document.getElementsByClassName('game-title')[0].append(" As Player" + data.Value);
+          } else if(data.Type === "RoundResult") {
+            if(data.Value !== "0") {
+              gameLog.append("Round won by Player" + data.Value + "!");
+            } else {
+              gameLog.append("Draw!");
+            }
+          } else if(data.Type === "FinalResult") {
+            gameLog.append("Game won by Player" + data.Value + "!!!");
+            document.getElementById("back-btn").style.display = "block";
+          } else if(data.Type.includes("Message")) {
+            gameLog.append(data.Type + ": " + data.Value);
+          }
 
-		function sendMove(mv) {
-			var cmd = '{"command": 1,"data":"' + mv + '"}';
-			ws.send(cmd);
-		}
-		
-		function sendMsg() {
-			var cmd = '{"command": 2,"data":"' + document.getElementsByClassName('message')[0].value + '"}';
-			ws.send(cmd);
-		}
+          gameLog.appendChild(document.createElement("br"));
+        }
 
-		{{else}}
-		
-		function queryMatch() {
-			document.getElementsByClassName('query-btn')[0].disabled = true;
-			document.getElementsByClassName('searching')[0].style.display = "block";
+        ws.onclose = function() {
+          gameLog.append("Room closed");
+        }
+      }
+    }
 
-			fetch("/query", {
-			  method: "POST", 
-			}).then(function(res) {
-				res.text().then((code) => {
-					window.location.href = "/room/" + code;
-				});
-			});
-		}
-	
-		{{end}}
-	</script>
+    function sendMove(mv) {
+      var cmd = '{"command": 1,"data":"' + mv + '"}';
+      ws.send(cmd);
+    }
+    
+    function sendMsg() {
+      var cmd = '{"command": 2,"data":"' + document.getElementsByClassName('message')[0].value + '"}';
+      ws.send(cmd);
+    }
 
-	<body>
-		<div id="container">
-			<h1>Rock Paper Scissors Demo</h1>
-			{{if .Room}}
-			<div class="game-container">
-				<h5 class="game-title">Room: {{.Room}} </h5>
-				<button onclick="sendMove('r')" class="rock">rock</button>
-				<button onclick="sendMove('p')" class="paper">paper</button>
-				<button onclick="sendMove('s')" class="scissors">scissors</button>
-				<input class="message" type="text">
-				<button onclick="sendMsg()">send</button>
-				<div id="game-log">
-				</div>
-				<button id="back-btn" onclick="window.location.href = '/'" hidden>Go back</button>
-			</div>
-			{{else}}
-			<div class="query-container">
-				<button onclick="queryMatch()" class="query-btn">Find a match</button>
-				<span class="searching" hidden>Searching...</span>
-			</div>
-			{{end}}
-		</div>
-	</body>
+    {{else}}
+    
+    function queryMatch() {
+      document.getElementsByClassName('query-btn')[0].disabled = true;
+      document.getElementsByClassName('searching')[0].style.display = "block";
+
+      fetch("/query", {
+        method: "POST", 
+      }).then(function(res) {
+        res.text().then((code) => {
+          window.location.href = "/room/" + code;
+        });
+      });
+    }
+  
+    {{end}}
+  </script>
+
+  <body>
+    <div id="container">
+      <h1>Rock Paper Scissors Demo</h1>
+      {{if .Room}}
+      <div class="game-container">
+        <h5 class="game-title">Room: {{.Room}} </h5>
+        <button onclick="sendMove('r')" class="rock">rock</button>
+        <button onclick="sendMove('p')" class="paper">paper</button>
+        <button onclick="sendMove('s')" class="scissors">scissors</button>
+        <input class="message" type="text">
+        <button onclick="sendMsg()">send</button>
+        <div id="game-log">
+        </div>
+        <button id="back-btn" onclick="window.location.href = '/'" hidden>Go back</button>
+      </div>
+      {{else}}
+      <div class="query-container">
+        <button onclick="queryMatch()" class="query-btn">Find a match</button>
+        <span class="searching" hidden>Searching...</span>
+      </div>
+      {{end}}
+    </div>
+  </body>
 </html>
 

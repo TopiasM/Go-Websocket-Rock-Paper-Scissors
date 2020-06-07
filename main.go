@@ -62,9 +62,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func queryHandler(w http.ResponseWriter, r *http.Request) {
-	var line_number int = len(query)
+	var lineNumber int = len(query)
 
-	if line_number % 2 == 0 {
+	if lineNumber % 2 == 0 {
 		randChar := make([]byte, 3)
 		for i := 0; i < 3; i++ {
 			randChar[i] = byte(65 + rand.Intn(90-65));
@@ -72,12 +72,12 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		room = fmt.Sprintf("%s%s%s-%s", string(randChar[0]), string(randChar[1]), string(randChar[2]) , strconv.Itoa((matchingCap-1)/2))
 	}
 
-	query[line_number] = w
+	query[lineNumber] = w
 	for {
 		time.Sleep(50 * time.Millisecond)
 		if len(query) > matchingCap{break}
 	}
-	query[line_number] = nil
+	query[lineNumber] = nil
 
 	queryRoom[room]++
 	if queryRoom[room] > 1 {
@@ -113,7 +113,7 @@ func gameConnect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	connections[room][conn] = true
-	defer close_room(room)
+	defer closeRoom(room)
 	score[room][player] = 0
 	if(player == 2){
 		response := Response{Type: "gameStart", Value: "1"}
@@ -157,7 +157,7 @@ func gameLoop(room string, player int, conn *websocket.Conn){
 					response.Type = "FinalResult"
 					go func(){
 						time.Sleep(time.Second * 5)
-						close_room(room)
+						closeRoom(room)
 					}()
 				}
 				messageClients(room, response)
@@ -171,7 +171,7 @@ func gameLoop(room string, player int, conn *websocket.Conn){
 	}
 }
 
-func close_room(room string) {
+func closeRoom(room string) {
 	for conn := range connections[room] {
 		conn.Close()
 	}
