@@ -3,14 +3,15 @@
     {{if .Room}}
 
     var ws;
-    var addr = "localhost:8080";
+    var addr = "ws://localhost:8080";
 
     window.onload = function() {
       if (window.WebSocket === undefined) {
         alert("Browser doesn't support websocket");
         return;
       } else {
-        ws = new WebSocket(addr + "/game/{{.}}");
+        console.log(window.WebSocket);
+        ws = new WebSocket(addr + "/game/{{.Room}}");
 
         var gameLog = document.getElementById("game-log");
         var player = 0;
