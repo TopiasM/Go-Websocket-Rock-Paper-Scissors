@@ -45,10 +45,10 @@ func main() {
 	r.HandleFunc("/query", queryHandler).Methods("POST")
 
 	srv := &http.Server{
-		Handler:      r,
-		Addr:         ":8080",
+		Handler:		  r,
+		Addr:		     ":8080",
 		WriteTimeout: 5 * time.Second,
-		ReadTimeout:  5 * time.Second,
+		ReadTimeout:	5 * time.Second,
 	}
 
 	log.Fatal(srv.ListenAndServe())
@@ -95,7 +95,7 @@ func gameConnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url :=  string(r.URL.Path)
+	url :=	string(r.URL.Path)
 	room := url[6:]
 	player := int(len(connections[room]) + 1)
 
@@ -144,23 +144,24 @@ func gameLoop(room string, player int, conn *websocket.Conn){
 			if move[room][1] != "" && move[room][2] != "" {
 				p1move := move[room][1]
 				p2move := move[room][2]
-				if((p1move == "s" && p2move == "p") || (p1move == "p" && p2move == "r") || (p1move == "r" && p2move == "s")) {
+				if ((p1move == "s" && p2move == "p") || (p1move == "p" && p2move == "r") || (p1move == "r" && p2move == "s")) {
 					response.Value = "1"
 					score[room][1]++
-				}else if((p2move == "s" && p1move == "p") || (p2move == "p" && p1move == "r") || (p2move == "r" && p1move == "s")) {
+				} else if ((p2move == "s" && p1move == "p") || (p2move == "p" && p1move == "r") || (p2move == "r" && p1move == "s")) {
 					response.Value = "2"
 					score[room][2]++
 				}
 				move[room][1] = ""
 				move[room][2] = ""
+				messageClients(room, response)
 				if score[room][1] > 2 || score[room][2] > 2 {
 					response.Type = "FinalResult"
+					messageClients(room, response)
 					go func(){
 						time.Sleep(time.Second * 5)
 						closeRoom(room)
 					}()
 				}
-				messageClients(room, response)
 			}
 
 		} else if msg.Command == 2 {

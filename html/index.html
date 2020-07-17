@@ -4,7 +4,11 @@
 
     var ws;
     var addr = "ws://localhost:8080";
-
+    var lastMove = "";
+    var player = 0;
+    var scores = [];
+    scores[1] = 0;
+    scores[2] = 0;
     window.onload = function() {
       if (window.WebSocket === undefined) {
         alert("Browser doesn't support websocket");
@@ -14,7 +18,6 @@
         ws = new WebSocket(addr + "/game/{{.Room}}");
 
         var gameLog = document.getElementById("game-log");
-        var player = 0;
 
         ws.onopen = function (event) {
           var msg = JSON.stringify({command:0, data:"connect"});
@@ -24,12 +27,31 @@
         ws.onmessage = function(event) {
           let data = JSON.parse(event.data);
           if(data.Type === "Player") {
-            document.getElementsByClassName('game-title')[0].append(" As Player" + data.Value);
+            player = data.Value;
+            document.getElementsByClassName('game-title')[0].append(" as Player" + data.Value);
           } else if(data.Type === "RoundResult") {
             if(data.Value !== "0") {
-              gameLog.append("Round won by Player" + data.Value + "!");
+              let output = "";
+              if(data.Value == player) {
+                output += "You won the round! ";
+                switch(lastMove) {
+                  case "r": output += "Rock beats scissors"; break;
+                  case "p": output += "Paper beats rock"; break;
+                  case "s": output += "Scissors beats paper"; break;
+                }
+              } else {
+                output += "You lost the round! "
+                switch(lastMove) {
+                  case "r": output += "Rock loses to paper"; break;
+                  case "p": output += "Paper loses to scissors"; break;
+                  case "s": output += "Scissors loses to rock"; break;
+                }
+              }
+              scores[data.Value]++;
+              document.getElementsByClassName("p" + data.Value + "Score")[0].innerHTML = scores[data.Value];
+              gameLog.append(output);
             } else {
-              gameLog.append("Draw!");
+              gameLog.append("draw!");
             }
           } else if(data.Type === "FinalResult") {
             gameLog.append("Game won by Player" + data.Value + "!!!");
@@ -48,6 +70,7 @@
     }
 
     function sendMove(mv) {
+      lastMove = mv;
       var cmd = '{"command": 1,"data":"' + mv + '"}';
       ws.send(cmd);
     }
@@ -81,6 +104,7 @@
       {{if .Room}}
       <div class="game-container">
         <h5 class="game-title">Room: {{.Room}} </h5>
+        <h6 class="score">Score: Player1[<span class="p1Score">0</span>] | Player2[<span class="p2Score">0</span>]</h6>
         <button onclick="sendMove('r')" class="rock">rock</button>
         <button onclick="sendMove('p')" class="paper">paper</button>
         <button onclick="sendMove('s')" class="scissors">scissors</button>
